@@ -1,0 +1,16 @@
+{
+  "source": "Unity",
+  "applications": [
+    {
+      "app_key": "application.generated.unity.xr_virtual_apartment.exe",
+      "launch_type": "url",
+      "url": "steam://launch/",
+      "action_manifest_path": "E:\\UnityProjects\\XRG9_Virtual_Apartment\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "strings": {
+        "en_us": {
+          "name": "XR_Virtual_Apartment [Testing]"
+        }
+      }
+    }
+  ]
+}
