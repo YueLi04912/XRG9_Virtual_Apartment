@@ -105,6 +105,22 @@ namespace Valve.VR
             }
         }
         
+        public virtual SteamVR_Action_Boolean ToggleAnnotationMode
+        {
+            get
+            {
+                return SteamVR_Actions.default_ToggleAnnotationMode;
+            }
+        }
+        
+        public virtual SteamVR_Action_Boolean PlayOrDelete
+        {
+            get
+            {
+                return SteamVR_Actions.default_PlayOrDelete;
+            }
+        }
+        
         public virtual SteamVR_Action_Vibration Haptic
         {
             get

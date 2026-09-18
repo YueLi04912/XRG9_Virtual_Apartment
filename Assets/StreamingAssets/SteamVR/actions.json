@@ -50,6 +50,14 @@
       "type": "boolean"
     },
     {
+      "name": "/actions/default/in/ToggleAnnotationMode",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/default/in/PlayOrDelete",
+      "type": "boolean"
+    },
+    {
       "name": "/actions/default/out/Haptic",
       "type": "vibration"
     },
