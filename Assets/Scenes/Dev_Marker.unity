@@ -1751,7 +1751,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   logLevel: 1
-  modelPath: ggml-tiny.bin
+  modelPath: ggml-base.en.bin
   isModelPathInStreamingAssets: 1
   initOnAwake: 1
   useGpu: 1
