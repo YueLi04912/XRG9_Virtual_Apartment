@@ -359,6 +359,12 @@
         "com.unity.xr.legacyinputhelpers": "2.1.4"
       }
     },
+    "com.whisper.unity": {
+      "version": "file:C:/Users/ly/Downloads/whisper.unity-master/Packages/com.whisper.unity",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,
