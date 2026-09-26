@@ -73,3 +73,11 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Codely AI local tooling (machine-specific)
+/.codely-cli/
+/.codelyignore
+/CODELY.md
+
+# Local screenshots
+/screenshots/
