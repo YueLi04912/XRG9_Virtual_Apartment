@@ -360,9 +360,9 @@
       }
     },
     "com.whisper.unity": {
-      "version": "file:C:/Users/ly/Downloads/whisper.unity-master/Packages/com.whisper.unity",
+      "version": "file:com.whisper.unity",
       "depth": 0,
-      "source": "local",
+      "source": "embedded",
       "dependencies": {}
     },
     "com.unity.modules.ai": {
