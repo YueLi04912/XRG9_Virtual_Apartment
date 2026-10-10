@@ -20,11 +20,17 @@ namespace Valve.VR.Extras
         bool isActive = false;
         public bool addRigidBody = false;
         public Transform reference;
+        [Header("Ray Smoothing")]
+        public bool enableSmoothing = true;
+        [Min(0f)]
+        public float smoothingSpeed = 20f;
         public event PointerEventHandler PointerIn;
         public event PointerEventHandler PointerOut;
         public event PointerEventHandler PointerClick;
 
         Transform previousContact = null;
+        private Vector3 smoothedPosition;
+        private Quaternion smoothedRotation;
 
 
         private void Start()
@@ -37,6 +43,8 @@ namespace Valve.VR.Extras
             if (interactWithUI == null)
                 Debug.LogError("No ui interaction action has been set on this component.", this);
 
+            smoothedPosition = transform.position;
+            smoothedRotation = transform.rotation;
 
             holder = new GameObject();
             holder.transform.parent = this.transform;
@@ -68,6 +76,8 @@ namespace Valve.VR.Extras
             Material newMaterial = new Material(Shader.Find("Unlit/Color"));
             newMaterial.SetColor("_Color", color);
             pointer.GetComponent<MeshRenderer>().material = newMaterial;
+            holder.transform.position = smoothedPosition;
+            holder.transform.rotation = smoothedRotation;
         }
 
         public virtual void OnPointerIn(PointerEventArgs e)
@@ -97,9 +107,27 @@ namespace Valve.VR.Extras
                 this.transform.GetChild(0).gameObject.SetActive(true);
             }
 
+            if (enableSmoothing)
+            {
+                float smoothingFactor =
+                    1f - Mathf.Exp(-Mathf.Max(0f, smoothingSpeed) * Time.deltaTime);
+                smoothedPosition = Vector3.Lerp(
+                    smoothedPosition, transform.position, smoothingFactor);
+                smoothedRotation = Quaternion.Slerp(
+                    smoothedRotation, transform.rotation, smoothingFactor);
+            }
+            else
+            {
+                smoothedPosition = transform.position;
+                smoothedRotation = transform.rotation;
+            }
+
+            holder.transform.position = smoothedPosition;
+            holder.transform.rotation = smoothedRotation;
+
             float dist = 100f;
 
-            Ray raycast = new Ray(transform.position, transform.forward);
+            Ray raycast = new Ray(smoothedPosition, smoothedRotation * Vector3.forward);
             RaycastHit hit;
             bool bHit = Physics.Raycast(raycast, out hit);
 

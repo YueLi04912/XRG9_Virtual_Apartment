@@ -69,3 +69,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e9c44f9928bc1641828896377100c46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  flowManager: {fileID: 0}
+  tutorialPage: {fileID: 0}
+  controllerPose: {fileID: 0}
+  triggerAction:
+    actionPath: 
+    needsReinit: 0
+  rayOrigin: {fileID: 0}
+  swipeThreshold: 0.08
+  viewReference: {fileID: 0}
+  debugLogs: 1
