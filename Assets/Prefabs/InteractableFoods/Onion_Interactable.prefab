@@ -86,11 +86,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: fa4df30d00272c648a40b1e52b3918de,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3902444428421347067}
+    m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fa4df30d00272c648a40b1e52b3918de,
         type: 3}
@@ -187,8 +183,8 @@ MonoBehaviour:
   hideControllerOnAttach: 1
   handAnimationOnPickup: 0
   setRangeOfMotionOnPickup: -1
-  useHandObjectAttachmentPoint: 1
-  attachEaseIn: 0
+  useHandObjectAttachmentPoint: 0
+  attachEaseIn: 1
   snapAttachEaseInCurve:
     serializedVersion: 2
     m_Curve:
@@ -213,11 +209,11 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  snapAttachEaseInTime: 0.15
-  snapAttachEaseInCompleted: 0
+  snapAttachEaseInTime: 0.1
+  snapAttachEaseInCompleted: 1
   skeletonPoser: {fileID: 0}
-  handFollowTransform: 1
-  highlightOnHover: 1
+  handFollowTransform: 0
+  highlightOnHover: 0
   hideHighlight: []
   hoverPriority: 0
 --- !u!114 &3256975545284095341
@@ -303,9 +299,3 @@ MonoBehaviour:
   previewPoseSelection: 0
   blendingBehaviours: []
   scale: 1
---- !u!4 &676232207826787903 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: fa4df30d00272c648a40b1e52b3918de,
-    type: 3}
-  m_PrefabInstance: {fileID: 1074333779135101396}
-  m_PrefabAsset: {fileID: 0}
