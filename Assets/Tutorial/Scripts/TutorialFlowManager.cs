@@ -1,270 +1,232 @@
-using TMPro;
+
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
+using TMPro;
 
 public class TutorialFlowManager : MonoBehaviour
 {
-    public enum TutorialStep
+    [System.Serializable]
+    public class TutorialData
     {
-        TeleportPoint,
-        Thumbstick,
-        Trigger,
-        Grip,
-        Look,
-        Marker
+        [TextArea(2, 3)]
+        public string title;
 
+        public Sprite image;
     }
 
-    [Header("Popup")]
-    public GameObject tutorialPopupPanel;
-    public TMP_Text popupTitle;
-    public Image popupImage;
-    public TMP_Text popupHint;
-    public Button completeButton;
+    [Header("Pages")]
+    public GameObject welcomePage;
+    public GameObject instructionBoard;
+    public GameObject tutorialPage;
+    public GameObject finishPage;
 
-    [Header("Tutorial Buttons")]
-    public Button btnTeleportPoint;
-    public Button btnThumbstick;
-    public Button btnTrigger;
-    public Button btnGrip;
-    public Button btnLook;
-    public Button btnMarker;
+    [Header("Tutorial Content")]
+    public TMP_Text tutorialTitle;
+    public Image tutorialImage;
+    public TMP_Text pageNumberText;
 
-    [Header("Tutorial Texts")]
-    public TMP_Text txtTeleportPoint;
-    public TMP_Text txtThumbstick;
-    public TMP_Text txtTrigger;
-    public TMP_Text txtGrip;
-    public TMP_Text txtLook;
-    public TMP_Text txtMarker;
+    public TutorialData[] tutorials = new TutorialData[6];
 
-    [Header("Tutorial Images")]
-    public Sprite imgTeleportPoint;
-    public Sprite imgThumbstick;
-    public Sprite imgTrigger;
-    public Sprite imgGrip;
-    public Sprite imgLook;
-    public Sprite imgMarker;
-
-    [Header("Start Button")]
+    [Header("Buttons")]
     public Button startButton;
-    public TMP_Text startButtonText;
+    public Button previousButton;
+    public Button nextButton;
+    public Button finishButton;
 
-    [Header("Colors")]
-    public Color incompleteColor = Color.white;
-    public Color completeColor = Color.green;
-    public Color lockedColor = Color.gray;
-    public Color readyColor = Color.green;
+    [Header("Elevator Door Event")]
+    public UnityEvent onTutorialFinished;
 
-    private TutorialStep currentStep;
+    private int currentPage = 0;
+    private bool hasStarted = false;
+    private bool tutorialFinished = false;
 
-    private bool teleportDone = false;
-    private bool thumbstickDone = false;
-    private bool triggerDone = false;
-    private bool gripDone = false;
-    private bool lookDone = false;
-    private bool markerDone = false;
+    private void Awake()
+    {
+        // Register button events once.
+        if (startButton != null)
+            startButton.onClick.AddListener(StartTutorial);
+
+        if (previousButton != null)
+            previousButton.onClick.AddListener(PreviousPage);
+
+        if (nextButton != null)
+            nextButton.onClick.AddListener(NextPage);
+
+        if (finishButton != null)
+            finishButton.onClick.AddListener(FinishTutorial);
+    }
 
     private void Start()
     {
-        tutorialPopupPanel.SetActive(false);
+        hasStarted = false;
+        tutorialFinished = false;
+        currentPage = 0;
 
-        startButton.interactable = false;
+        // Initial state: welcome page only.
+        welcomePage.SetActive(true);
+        instructionBoard.SetActive(false);
+        finishPage.SetActive(false);
 
-        if (startButtonText != null)
-            startButtonText.color = lockedColor;
-
-        btnTeleportPoint.onClick.AddListener(
-            () => OpenStep(TutorialStep.TeleportPoint));
-
-        btnThumbstick.onClick.AddListener(
-            () => OpenStep(TutorialStep.Thumbstick));
-
-        btnTrigger.onClick.AddListener(
-            () => OpenStep(TutorialStep.Trigger));
-
-        btnGrip.onClick.AddListener(
-            () => OpenStep(TutorialStep.Grip));
-
-        btnLook.onClick.AddListener(
-            () => OpenStep(TutorialStep.Look));
-
-        btnMarker.onClick.AddListener(
-            () => OpenStep(TutorialStep.Marker));
-
-        completeButton.onClick.AddListener(CompleteCurrentStep);
-
-        RefreshTutorialText();
-    }
-
-    public void OpenStep(TutorialStep step)
-    {
-        currentStep = step;
-
-        tutorialPopupPanel.SetActive(true);
-
-        switch (step)
+        if (tutorials == null || tutorials.Length == 0)
         {
-            case TutorialStep.TeleportPoint:
-                popupTitle.text = "TELEPORT DESTINATION";
-                popupHint.text =
-                    "Point at the floor to choose a teleport destination.";
-                popupImage.sprite = imgTeleportPoint;
-                break;
-
-            case TutorialStep.Thumbstick:
-                popupTitle.text = "THUMBSTICK";
-                popupHint.text =
-                    "Use the thumbstick to teleport and turn.";
-                popupImage.sprite = imgThumbstick;
-                break;
-
-            case TutorialStep.Trigger:
-                popupTitle.text = "TRIGGER";
-                popupHint.text =
-                    "Press the trigger to select or confirm.";
-                popupImage.sprite = imgTrigger;
-                break;
-
-            case TutorialStep.Grip:
-                popupTitle.text = "GRIP";
-                popupHint.text =
-                    "Hold the grip button to grab objects.";
-                popupImage.sprite = imgGrip;
-                break;
-
-            case TutorialStep.Look:
-                popupTitle.text = "LOOK AROUND";
-                popupHint.text =
-                    "Move your head to look around the kitchen.";
-                popupImage.sprite = imgLook;
-                break;
-
-            case TutorialStep.Marker:
-                popupTitle.text = "MARKER & VOICE FEEDBACK";
-                popupHint.text =
-                    "Press A to enter marker mode.\n" +
-                    "Aim at a location and press Trigger to place a marker.\n" +
-                    "Point at the marker and hold Trigger to record voice feedback.\n" +
-                    "Press B to play recorded feedback.";
-                popupImage.sprite = imgMarker;
-                break;
-
+            Debug.LogWarning(
+                "TutorialFlowManager: No tutorial pages configured.");
         }
     }
 
-    public void CompleteCurrentStep()
+    // Called when the player clicks START.
+    public void StartTutorial()
     {
-        switch (currentStep)
-        {
-            case TutorialStep.TeleportPoint:
-                teleportDone = true;
-                break;
-
-            case TutorialStep.Thumbstick:
-                thumbstickDone = true;
-                break;
-
-            case TutorialStep.Trigger:
-                triggerDone = true;
-                break;
-
-            case TutorialStep.Grip:
-                gripDone = true;
-                break;
-
-            case TutorialStep.Look:
-                lookDone = true;
-                break;
-
-            case TutorialStep.Marker:
-                markerDone = true;
-                break;
-
-        }
-
-        tutorialPopupPanel.SetActive(false);
-
-        RefreshTutorialText();
-        CheckAllCompleted();
-    }
-
-    private void RefreshTutorialText()
-    {
-        SetText(
-            txtTeleportPoint,
-            teleportDone,
-            "Point at the floor to choose a teleport destination");
-
-        SetText(
-            txtThumbstick,
-            thumbstickDone,
-            "Use the thumbstick to teleport and turn");
-
-        SetText(
-            txtTrigger,
-            triggerDone,
-            "Press the trigger to select or confirm");
-
-        SetText(
-            txtGrip,
-            gripDone,
-            "Hold the grip button to grab objects");
-
-        SetText(
-            txtLook,
-            lookDone,
-            "Move your head to look around the kitchen");
-
-        SetText(
-            txtMarker,
-            markerDone,
-            "Use the marker tool to leave feedback");
-
-    }
-
-    private void SetText(
-        TMP_Text textObject,
-        bool completed,
-        string message)
-    {
-        if (textObject == null)
+        if (hasStarted || tutorialFinished)
             return;
 
-        if (completed)
+        if (tutorials == null || tutorials.Length == 0)
         {
-            textObject.text = message;
-            textObject.color = completeColor;
+            Debug.LogWarning("No tutorial pages available.");
+            return;
+        }
+
+        hasStarted = true;
+        currentPage = 0;
+
+        welcomePage.SetActive(false);
+        finishPage.SetActive(false);
+        instructionBoard.SetActive(true);
+
+        ShowPage(currentPage);
+
+        Debug.Log("Tutorial started.");
+    }
+
+    // Update the content of the single tutorial page.
+    private void ShowPage(int index)
+    {
+        if (!hasStarted)
+            return;
+
+        if (index < 0 || index >= tutorials.Length)
+            return;
+
+        currentPage = index;
+
+        if (pageNumberText != null)
+        {
+            pageNumberText.text =
+                (currentPage + 1) + " / " + tutorials.Length;
+        }
+
+        instructionBoard.SetActive(true);
+        tutorialPage.SetActive(true);
+        finishPage.SetActive(false);
+
+        TutorialData data = tutorials[currentPage];
+
+        if (tutorialTitle != null)
+            tutorialTitle.text = data.title;
+
+        if (tutorialImage != null)
+        {
+            tutorialImage.sprite = data.image;
+
+            // Image can be assigned later.
+            // Keep the image area available for swipe input.
+            tutorialImage.color =
+                data.image == null
+                ? Color.white
+                : Color.white;
+
+            tutorialImage.preserveAspect = true;
+        }
+
+        if (previousButton != null)
+            previousButton.interactable = currentPage > 0;
+
+        if (nextButton != null)
+            nextButton.interactable = true;
+
+        Debug.Log(
+            "Showing tutorial page " +
+            (currentPage + 1) + "/" + tutorials.Length);
+    }
+
+    // Right arrow or swipe left.
+    public void NextPage()
+    {
+        Debug.Log("NextButton click received!");
+
+        if (!hasStarted || !tutorialPage.activeInHierarchy)
+            return;
+
+        if (currentPage < tutorials.Length - 1)
+        {
+            ShowPage(currentPage + 1);
         }
         else
         {
-            textObject.text = message;
-            textObject.color = incompleteColor;
+            ShowFinishPage();
         }
     }
 
-    private void CheckAllCompleted()
+    // Left arrow or swipe right.
+    public void PreviousPage()
     {
-        if (teleportDone &&
-            thumbstickDone &&
-            triggerDone &&
-            gripDone &&
-            lookDone &&
-            markerDone)
+        if (!hasStarted || !tutorialPage.activeInHierarchy)
+            return;
+
+        if (currentPage > 0)
         {
-            startButton.interactable = true;
-
-            if (startButtonText != null)
-                startButtonText.color = readyColor;
-
-            Debug.Log("START TOUR unlocked!");
+            ShowPage(currentPage - 1);
         }
     }
 
-    public void StartTour()
+    // Hide the large board and display the small finish page.
+    private void ShowFinishPage()
     {
-        Debug.Log("START TOUR clicked!");
+        tutorialPage.SetActive(false);
+        instructionBoard.SetActive(false);
 
-        gameObject.SetActive(false);
+        finishPage.SetActive(true);
+
+        Debug.Log("Tutorial completed. Finish page displayed.");
+    }
+
+    // Called when player clicks FINISH.
+    public void FinishTutorial()
+    {
+        if (!hasStarted || tutorialFinished)
+            return;
+
+        if (!finishPage.activeInHierarchy)
+            return;
+
+        tutorialFinished = true;
+        hasStarted = false;
+
+        finishPage.SetActive(false);
+        instructionBoard.SetActive(false);
+
+        // Will call the elevator door controller
+        // after it is connected in the Inspector.
+        onTutorialFinished?.Invoke();
+
+        Debug.Log(
+            "FINISH clicked. Elevator door event triggered.");
+    }
+
+    private void OnDestroy()
+    {
+        // Remove only listeners registered by this script.
+        if (startButton != null)
+            startButton.onClick.RemoveListener(StartTutorial);
+
+        if (previousButton != null)
+            previousButton.onClick.RemoveListener(PreviousPage);
+
+        if (nextButton != null)
+            nextButton.onClick.RemoveListener(NextPage);
+
+        if (finishButton != null)
+            finishButton.onClick.RemoveListener(FinishTutorial);
     }
 }
