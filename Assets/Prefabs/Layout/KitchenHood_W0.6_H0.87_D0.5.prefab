@@ -31,17 +31,17 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 31c3b431bc8815243b430d0e97e71c96,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 3.7665868
+      value: 2.598314
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 31c3b431bc8815243b430d0e97e71c96,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.004999995
+      value: 1.5614964
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 31c3b431bc8815243b430d0e97e71c96,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.87334883
+      value: 11.70037
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 31c3b431bc8815243b430d0e97e71c96,
         type: 3}
@@ -82,6 +82,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: KitchenHood_W0.6_H0.87_D0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8119161516107503893, guid: 31c3b431bc8815243b430d0e97e71c96,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8119161516107503893, guid: 31c3b431bc8815243b430d0e97e71c96,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:

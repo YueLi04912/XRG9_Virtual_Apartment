@@ -6,10 +6,19 @@ using System.Linq;
 
 public static class AnnotationExporter
 {
-    // 获取统一的保存路径 (Quest 3 内置存储或 Windows 的 AppData 目录)
+    // 获取统一的保存路径：
+    // - Unity 编辑器调试：保存至电脑桌面 (彻底隔离 Git 仓库，防止污染代码仓)
+    // - 构建打包为 exe 后：保存至可执行程序同级目录 (便于现场评审提取数据)
     public static string GetExportFolder()
     {
-        string path = Path.Combine(Application.persistentDataPath, "AnnotationData");
+        string path;
+
+        #if UNITY_EDITOR
+            path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "VirtualApartment_ReviewData");
+        #else
+            path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "AnnotationData"));
+        #endif
+
         if (!Directory.Exists(path)) Directory.CreateDirectory(path);
         return path;
     }
@@ -52,22 +61,20 @@ public static class AnnotationExporter
         return fileName;
     }
 
-    // 2. 将所有小球数据更新到 CSV 表格中
-    // 2. 在游戏结束时统一调用，按 Session 导出带时间戳的 CSV
-    // 导出最终的 CSV 报表（在游戏关闭时调用）
+    // 2. 导出最终的 CSV 报表（在游戏关闭时调用）
     public static void ExportSessionCSV()
     {
         string folder = GetExportFolder();
         string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        string filePath = System.IO.Path.Combine(folder, $"AnnotationReport_{timestamp}.csv");
+        string filePath = Path.Combine(folder, $"AnnotationReport_{timestamp}.csv");
 
         // 查找场景中所有活着的标记小球
         FeedbackMarker[] allMarkers = UnityEngine.Object.FindObjectsOfType<FeedbackMarker>();
 
         // 写入 CSV（使用 UTF8 编码防止中文乱码）
-        using (System.IO.StreamWriter sw = new System.IO.StreamWriter(filePath, false, new System.Text.UTF8Encoding(true)))
+        using (StreamWriter sw = new StreamWriter(filePath, false, new UTF8Encoding(true)))
         {
-            // 【修改点 1】：在表头增加第 7 列 “语音识别文本”
+            // 表头包含基础数据与语音转译文本
             sw.WriteLine("ID,Priority,PositionX,PositionY,PositionZ,AudioFiles,Transcriptions");
 
             foreach (var marker in allMarkers)
@@ -75,18 +82,19 @@ public static class AnnotationExporter
                 // 用 | 符号连接同一个小球的多段音频
                 string audioList = string.Join(" | ", marker.audioFiles);
                 
-                // 【修改点 2】：用 | 符号连接同一个小球的多段 AI 识别文字
+                // 用 | 符号连接同一个小球的多段 AI 识别文字
                 string textList = string.Join(" | ", marker.transcribedTexts);
                 
                 Vector3 pos = marker.transform.position;
                 
-                // 【修改点】：在 {textList} 两边加上转义的双引号 \" 
+                // 在 {textList} 两边加上转义的双引号防止格式错乱
                 sw.WriteLine($"{marker.markerId},{marker.priorityText},{pos.x:F3},{pos.y:F3},{pos.z:F3},{audioList},\"{textList}\"");
             }
         }
         
         Debug.Log($"[Data Management] 报表已成功生成，共包含 {allMarkers.Length} 个标记: {filePath}");
     }
+
     // 3. 物理删除硬盘上的废弃音频文件
     public static void DeleteAudioFiles(System.Collections.Generic.List<string> fileNames)
     {
