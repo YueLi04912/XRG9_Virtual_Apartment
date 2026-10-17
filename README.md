@@ -4,4 +4,4 @@
 - LI Haochen
 - MENG Yuting
 - YI Chenxi / 26093165G / YiArxia
-- GU Bingchen
+- GU Bingchen / 26095785G / Francis-067
