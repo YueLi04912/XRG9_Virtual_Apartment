@@ -3,5 +3,5 @@
 - WEI Yilin
 - LI Haochen
 - MENG Yuting
-- YI Chenxi
+- YI Chenxi / 26093165G / YiArxia
 - GU Bingchen
