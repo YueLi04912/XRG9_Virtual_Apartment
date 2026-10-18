@@ -2,15 +2,16 @@ using UnityEngine;
 using Valve.VR;
 using TMPro;
 using Whisper;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(LineRenderer))]
 public class MarkerTool : MonoBehaviour
 {
     [Header("按键绑定")]
-    public SteamVR_Action_Boolean interactAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("InteractUI"); // 扳机键
-    public SteamVR_Action_Boolean switchColorAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("GrabGrip"); // 握把键
-    public SteamVR_Action_Boolean toggleModeAction; // A 键开关
-    public SteamVR_Action_Boolean secondaryAction;  // 新增：B 键 (播放/长按删除)
+    public SteamVR_Action_Boolean interactAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("InteractUI");
+    public SteamVR_Action_Boolean switchColorAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("GrabGrip");
+    public SteamVR_Action_Boolean toggleModeAction; 
+    public SteamVR_Action_Boolean secondaryAction;  
     public SteamVR_Input_Sources handType = SteamVR_Input_Sources.RightHand;
     
     [Header("模式与预制件")]
@@ -33,19 +34,22 @@ public class MarkerTool : MonoBehaviour
     private Color[] colors = { Color.green, Color.yellow, Color.red };
     private string[] priorities = { "Low", "Medium", "High" };
     private int currentIndex = 0;
-
     private static int globalMarkerCounter = 0;
 
-    // === 录音系统 ===
-    private string micDeviceName;
-    private AudioClip continuousMicClip;
-    private int recordStartPos;
+    // === 录音与删除系统 ===
     private FeedbackMarker activeRecordingMarker = null; 
-
-    // === 新增：删除/播放系统 ===
-    private FeedbackMarker activeDeleteMarker = null; // 当前正在长按准备删除的小球
+    private FeedbackMarker activeDeleteMarker = null; 
     private float deleteTimer = 0f;
-    private const float DELETE_THRESHOLD = 1.5f; // 长按 1.5 秒后删除
+    private const float DELETE_THRESHOLD = 1.5f; 
+
+    // === 终极方案：多路并发监听系统 ===
+    private class MicTracker
+    {
+        public string deviceName;
+        public AudioClip clip;
+        public int startPos;
+    }
+    private List<MicTracker> activeMics = new List<MicTracker>();
 
     void Start()
     {
@@ -57,23 +61,44 @@ public class MarkerTool : MonoBehaviour
         
         smoothedRotation = transform.rotation;
         UpdateLaserColor();
-        InitMicrophone(); 
+        InitOmniMicrophones(); 
     }
 
-    void InitMicrophone()
+    // 同时开启所有相关的 VR 虚拟麦克风通道
+    void InitOmniMicrophones()
     {
+        activeMics.Clear();
         if (Microphone.devices.Length == 0) return;
-        micDeviceName = null;
-        foreach (var device in Microphone.devices)
-            if (device.ToLower().Contains("steam")) { micDeviceName = device; break; }
-        
-        if (string.IsNullOrEmpty(micDeviceName))
-            foreach (var device in Microphone.devices)
-                if (device.ToLower().Contains("oculus") || device.ToLower().Contains("virtual")) { micDeviceName = device; break; }
-                
-        if (string.IsNullOrEmpty(micDeviceName)) micDeviceName = Microphone.devices[0];
 
-        continuousMicClip = Microphone.Start(micDeviceName, true, 600, 44100);
+        HashSet<string> targetMics = new HashSet<string>();
+        foreach (var dev in Microphone.devices)
+        {
+            string lower = dev.ToLower();
+            if (lower.Contains("oculus") || lower.Contains("virtual") || lower.Contains("steam"))
+            {
+                targetMics.Add(dev);
+            }
+        }
+        // 如果都没匹配到，加入系统默认麦克风兜底
+        if (targetMics.Count == 0) targetMics.Add(Microphone.devices[0]); 
+
+        foreach (var micName in targetMics)
+        {
+            try 
+            {
+                // 获取麦克风原生支持的采样率，防止 Oculus 驱动因为频率不匹配而输出纯 0.0f 的静音数据
+                int minFreq, maxFreq;
+                Microphone.GetDeviceCaps(micName, out minFreq, out maxFreq);
+                
+                // 如果 maxFreq 返回 0，说明驱动允许任意频率，我们优先给 Oculus 分配它的原生 48000Hz
+                int recordFreq = (maxFreq == 0) ? 48000 : maxFreq; 
+
+                AudioClip c = Microphone.Start(micName, true, 600, recordFreq);
+                activeMics.Add(new MicTracker { deviceName = micName, clip = c, startPos = 0 });
+                Debug.Log($"[并发收音] 开启全天候监听通道: {micName} | 采样率: {recordFreq}Hz");
+            } 
+            catch { Debug.LogWarning($"[并发收音] 无法启动通道: {micName}"); }
+        }
     }
 
     void Update()
@@ -110,18 +135,16 @@ public class MarkerTool : MonoBehaviour
 
             if (interactAction.GetStateUp(handType))
             {
-                AudioClip extractedClip = StopAndExtractAudio();
+                // 松开扳机时，调用波形仲裁提取最佳音频
+                AudioClip extractedClip = StopAndExtractBestAudio();
+                
                 if (extractedClip != null && extractedClip.samples > 0)
                 {
                     try
                     {
                         string savedFileName = AnnotationExporter.SaveAudioToWav(extractedClip, activeRecordingMarker.markerId);
                         activeRecordingMarker.audioFiles.Add(savedFileName);
-                        
-                        // 【修改点】：只存入音频，不再调用 Play() 自动播放
                         activeRecordingMarker.SetAudio(extractedClip);
-
-                        // 【核心新增】：触发后台 AI 识别任务
                         ProcessSpeechToText(activeRecordingMarker, extractedClip);
                     }
                     catch (System.Exception e) { Debug.LogError($"[导出失败]: {e.Message}"); }
@@ -139,12 +162,11 @@ public class MarkerTool : MonoBehaviour
         {
             activeDeleteMarker.OnHoverEnter(); 
             laser.SetPosition(0, transform.position);
-            laser.SetPosition(1, activeDeleteMarker.transform.position); // 射线死死锁住小球
+            laser.SetPosition(1, activeDeleteMarker.transform.position); 
 
             deleteTimer += Time.deltaTime;
             float progress = Mathf.Clamp01(deleteTimer / DELETE_THRESHOLD);
 
-            // 绘制精美的全息进度条
             if (statusText != null)
             {
                 int filledBlocks = Mathf.FloorToInt(progress * 10);
@@ -152,22 +174,19 @@ public class MarkerTool : MonoBehaviour
                 statusText.text = $"<color=#ffaa00>Deleting ID: #{activeDeleteMarker.markerId}\n{bar}</color>";
             }
 
-            // 进度条满了，彻底销毁小球
             if (deleteTimer >= DELETE_THRESHOLD)
             {
                 AnnotationExporter.DeleteAudioFiles(activeDeleteMarker.audioFiles);
-
                 Destroy(activeDeleteMarker.gameObject);
                 activeDeleteMarker = null;
                 UpdateUI();
                 return;
             }
 
-            // 如果松开了 B 键 (只是短按播放，没有长按到底)
             if (secondaryAction != null && secondaryAction.GetStateUp(handType))
             {
-                activeDeleteMarker = null; // 解除锁定
-                UpdateUI(); // 恢复正常 UI
+                activeDeleteMarker = null; 
+                UpdateUI(); 
             }
             return;
         }
@@ -185,24 +204,25 @@ public class MarkerTool : MonoBehaviour
             {
                 hitMarker.OnHoverEnter();
                 
-                // 按下扳机：开始录音
                 if (interactAction.GetStateDown(handType))
                 {
                     activeRecordingMarker = hitMarker;
-                    recordStartPos = Microphone.GetPosition(micDeviceName);
+                    // 按下扳机时，让所有麦克风通道同时打点标记起始位置
+                    foreach (var mic in activeMics)
+                    {
+                        mic.startPos = Microphone.GetPosition(mic.deviceName);
+                    }
                     if (statusText != null) statusText.text = $"<color=red>● Recording (ID: #{activeRecordingMarker.markerId})...</color>";
                 }
-                // 新增：按下 B 键：立即播放声音，并开启长按删除锁定
                 else if (secondaryAction != null && secondaryAction.GetStateDown(handType))
                 {
                     activeDeleteMarker = hitMarker;
                     deleteTimer = 0f;
-                    hitMarker.PlayAudio(); // 一按下就出声音
+                    hitMarker.PlayAudio(); 
                 }
             }
             else
             {
-                // 指向空地：生成新小球
                 if (interactAction.GetStateDown(handType)) SpawnMarker(hit);
             }
         }
@@ -213,45 +233,77 @@ public class MarkerTool : MonoBehaviour
         }
     }
 
-    private AudioClip StopAndExtractAudio()
+    // === 核心逻辑：分析所有通道波形，提取物理振幅最大的真实音频 ===
+    private AudioClip StopAndExtractBestAudio()
     {
-        if (continuousMicClip == null) return null;
-        int recordEndPos = Microphone.GetPosition(micDeviceName);
-        int length = recordEndPos - recordStartPos;
-        if (length < 0) length += continuousMicClip.samples; 
-        if (length == 0) return null;
+        AudioClip bestClip = null;
+        float highestAmplitude = -1f;
+        string winningMicName = "None";
+        float[] bestSamples = null;
 
-        float[] samples = new float[length];
-        if (recordStartPos + length <= continuousMicClip.samples)
-            continuousMicClip.GetData(samples, recordStartPos);
+        foreach (var mic in activeMics)
+        {
+            if (mic.clip == null) continue;
+            
+            int endPos = Microphone.GetPosition(mic.deviceName);
+            int length = endPos - mic.startPos;
+            if (length < 0) length += mic.clip.samples; 
+            if (length <= 0) continue; 
+
+            float[] samples = new float[length];
+            if (mic.startPos + length <= mic.clip.samples)
+                mic.clip.GetData(samples, mic.startPos);
+            else
+            {
+                int tailLength = mic.clip.samples - mic.startPos;
+                float[] tailData = new float[tailLength];
+                mic.clip.GetData(tailData, mic.startPos);
+                int headLength = length - tailLength;
+                float[] headData = new float[headLength];
+                mic.clip.GetData(headData, 0);
+                tailData.CopyTo(samples, 0);
+                headData.CopyTo(samples, tailLength);
+            }
+
+            // 寻找当前通道的波形峰值
+            float currentMaxAmp = 0f;
+            for (int i = 0; i < samples.Length; i++)
+            {
+                if (Mathf.Abs(samples[i]) > currentMaxAmp) 
+                    currentMaxAmp = Mathf.Abs(samples[i]);
+            }
+
+            // 如果这个通道捕捉到了更大的声音（排除空载的纯0.0f）
+            if (currentMaxAmp > highestAmplitude)
+            {
+                highestAmplitude = currentMaxAmp;
+                bestSamples = samples;
+                winningMicName = mic.deviceName;
+            }
+        }
+
+        // 阈值保护：如果所有麦克风录到的最大峰值都小于 0.005f，说明全是在录空气/底噪
+        if (bestSamples != null && highestAmplitude > 0.005f)
+        {
+            Debug.Log($"<color=green>[波形仲裁] 胜出通道: {winningMicName} | 声音峰值: {highestAmplitude}</color>");
+            
+            // 对最终胜出的真实录音，执行自适应音量拉满补偿 (Auto-Gain)
+            float targetVolume = 0.95f; 
+            float dynamicBoost = targetVolume / highestAmplitude; 
+            for (int i = 0; i < bestSamples.Length; i++) 
+            {
+                bestSamples[i] *= dynamicBoost;
+            }
+
+            bestClip = AudioClip.Create("MarkerAudio", bestSamples.Length, 1, 44100, false);
+            bestClip.SetData(bestSamples, 0);
+        }
         else
         {
-            int tailLength = continuousMicClip.samples - recordStartPos;
-            float[] tailData = new float[tailLength];
-            continuousMicClip.GetData(tailData, recordStartPos);
-            int headLength = length - tailLength;
-            float[] headData = new float[headLength];
-            continuousMicClip.GetData(headData, 0);
-            tailData.CopyTo(samples, 0);
-            headData.CopyTo(samples, tailLength);
+            Debug.LogWarning("[波形仲裁] 未检测到有效输入，或声音太小被判定为静音。");
         }
 
-        float boostFactor = 4.0f; 
-        float maxSampleValue = 0f;
-        for (int i = 0; i < samples.Length; i++)
-        {
-            samples[i] *= boostFactor;
-            if (Mathf.Abs(samples[i]) > maxSampleValue) maxSampleValue = Mathf.Abs(samples[i]);
-        }
-        if (maxSampleValue > 1.0f)
-        {
-            float reduceFactor = 1.0f / maxSampleValue;
-            for (int i = 0; i < samples.Length; i++) samples[i] *= reduceFactor;
-        }
-
-        AudioClip extracted = AudioClip.Create("MarkerAudio", length, 1, 44100, false);
-        extracted.SetData(samples, 0);
-        return extracted;
+        return bestClip;
     }
 
     private void SpawnMarker(RaycastHit hit)
@@ -279,38 +331,28 @@ public class MarkerTool : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        if (continuousMicClip != null && Microphone.IsRecording(micDeviceName))
-            Microphone.End(micDeviceName);
-        AnnotationExporter.ExportSessionCSV();
+        foreach (var mic in activeMics)
+        {
+            if (mic.clip != null && Microphone.IsRecording(mic.deviceName))
+                Microphone.End(mic.deviceName);
+        }
+        //AnnotationExporter.ExportSessionCSV();
     }
 
-    // === 全新的后台 AI 语音识别任务 ===
     private async void ProcessSpeechToText(FeedbackMarker marker, AudioClip clip)
     {
-        if (whisperManager == null)
-        {
-            Debug.LogError("[STT] 缺少 WhisperManager 引用，请在 Inspector 中赋值！");
-            return;
-        }
-
+        if (whisperManager == null) return;
         Debug.Log($"[STT] 开始后台处理小球 #{marker.markerId} 的语音识别...");
-
         try
         {
-            // 直接将音频丢给本地 AI 模型，不卡顿主线程
             var result = await whisperManager.GetTextAsync(clip);
             string recognizedText = result.Result; 
-
             if (marker != null && !string.IsNullOrEmpty(recognizedText))
             {
-                // 将真实的文字塞进小球的记录列表里
                 marker.transcribedTexts.Add(recognizedText);
                 Debug.Log($"[STT] 小球 #{marker.markerId} 识别成功: {recognizedText}");
             }
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"[STT] 识别失败: {e.Message}");
-        }
+        catch (System.Exception e) { Debug.LogError($"[STT] 识别失败: {e.Message}"); }
     }
 }
