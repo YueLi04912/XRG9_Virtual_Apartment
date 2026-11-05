@@ -121,6 +121,14 @@ namespace Valve.VR
             }
         }
         
+        public virtual SteamVR_Action_Boolean ToggleClipBoard
+        {
+            get
+            {
+                return SteamVR_Actions.default_ToggleClipBoard;
+            }
+        }
+        
         public virtual SteamVR_Action_Vibration Haptic
         {
             get
