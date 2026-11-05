@@ -1322,14 +1322,14 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "<b><size=120%>WELCOME TO YOUR FUTURE HOME</size></b>\r\n<color=#CCCCCC><i>Spatial
-    Inspection Checklist</i></color>\r\n\r\n<b><color=#FFD700>[ HOW TO USE ]</color></b>\r\n\u2022
-    <b>Place Marker:</b> Press <b>[Trigger]</b> to point and mark areas with the
-    laser.\r\n\u2022 <b>Switch Severity:</b> Press <b>[Grip]</b> to cycle colors
-    (<color=#4CAF50>Green = Minor</color>, <color=#FFC107>Yellow = Caution</color>,
-    <color=#F44336>Red = Critical</color>).\r\n\u2022 <b>Voice Note:</b> Aim at a
-    marker and <b>Hold [Trigger]</b> to speak. Release to auto-save.\r\n\u2022 <b>Delete
-    Marker:</b> Aim at a marker and <b>Hold [B Button]</b> for 1.5s to undo.\r\n\r\nAs
+  m_text: "\r<b><color=#FFD700>[ HOW TO USE ANNOTATION ]:</color></b>\r\n<b>Press
+    A button on Right controller to enter Annotation Mode!\n\u2022 <b>Place Marker:</b>
+    Press <b>[Trigger]</b> to point and mark areas with the laser.\r\n\u2022 <b>Switch
+    Severity:</b> Press <b>[Grip]</b> to cycle colors (<color=#4CAF50>Green = Minor</color>,
+    <color=#FFC107>Yellow = Caution</color>, <color=#F44336>Red = Critical</color>).\r\n\u2022
+    <b>Voice Note:</b> Aim at a marker and <b>Hold [Trigger]</b> to speak. Release
+    to auto-save.\r\n\u2022 <b>Delete Marker:</b> Aim at a marker and <b>Hold [B
+    Button]</b> for 1.5s to undo.\r\n\r\r<b><color=#FFD700>[ Your Task]: </color></b>\r\nAs
     you tour the space, please check for hidden design flaws:\n\u2022 Are the walking
     paths smooth and spacious enough?\n\u2022 Are counters, cabinets, and ceilings
     at comfortable heights?\n\u2022 Does the furniture placement feel cramped or
@@ -1361,8 +1361,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 0.01
-  m_fontSizeBase: 0.01
+  m_fontSize: 0.0099
+  m_fontSizeBase: 0.0099
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -4742,7 +4742,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: c6e933ec0c15a094aad5392017211779, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 8.673
+      value: 5.745
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: c6e933ec0c15a094aad5392017211779, type: 3}
       propertyPath: m_LocalRotation.w
@@ -7629,6 +7629,100 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1718369758}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1733588579
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3466092459086969256, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_Name
+      value: InformationBoard (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6045217025237847773, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.337
+      objectReference: {fileID: 0}
+    - target: {fileID: 6045217025237847773, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.667
+      objectReference: {fileID: 0}
+    - target: {fileID: 6045217025237847773, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 9.156
+      objectReference: {fileID: 0}
+    - target: {fileID: 6045217025237847773, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6045217025237847773, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6045217025237847773, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6045217025237847773, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6045217025237847773, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6045217025237847773, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -180
+      objectReference: {fileID: 0}
+    - target: {fileID: 6045217025237847773, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7442018613840286978, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0.489
+      objectReference: {fileID: 0}
+    - target: {fileID: 8649429214862642061, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_text
+      value: "Forget about what to do? \n\nTry to press X  button on your LEFT controller!\n\n"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8649429214862642061, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_fontSize
+      value: 0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 8649429214862642061, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_fontSizeBase
+      value: 0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 8649429214862642061, guid: 2ac6671e1755b85489c7087be4fe074c,
+        type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects:
+    - {fileID: 3374263596446587775, guid: 2ac6671e1755b85489c7087be4fe074c, type: 3}
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2ac6671e1755b85489c7087be4fe074c, type: 3}
 --- !u!4 &1740389940 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5483958990995776025, guid: d5b2a23ba5ef79341b04d162a2ed42ef,
@@ -8955,3 +9049,4 @@ SceneRoots:
   - {fileID: 1937862628}
   - {fileID: 1251172319}
   - {fileID: 1612437419}
+  - {fileID: 1733588579}
