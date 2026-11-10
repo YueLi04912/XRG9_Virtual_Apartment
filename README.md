@@ -192,12 +192,12 @@ git lfs pull
 
 | Controller | Action / Input | Function |
 | :--- | :--- | :--- |
-| **Right Hand** | **Thumbstick** | Smooth Locomotion / Teleport |
+| **Right Hand** | **Thumbstick** |  Teleport |
 | **Right Hand** | **Trigger** | Activate laser; release on a surface to spawn a marker |
 | **Right Hand** | **Grip** | Cycle marker priority color (Green: Low → Yellow: Medium → Red: High) |
 | **Right Hand** | **Hover Marker + Press Record** | Record voice feedback; auto-transcribed via Whisper on release |
 | **Right Hand** | **Hover Marker + Hold Grip** | Hold for 1.5s to delete the targeted marker and its associated audio |
-| **Left Hand** | **Thumbstick** | Snap / Smooth Turning |
+| **Left Hand** | **Thumbstick** | Snap Turning |
 | **Left Hand** | **X / Primary Button** | Toggle the summonable instruction clipboard |
 | **PC Keyboard** | **Escape (Esc)** | Facilitator safe quit: flushes data to disk and closes application |
 
