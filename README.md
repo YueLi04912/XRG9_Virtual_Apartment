@@ -188,6 +188,32 @@ git lfs pull
 
 ---
 
+## 🖥️ How to Run the Built Executable
+
+If you are running the pre-built standalone package (`.exe` binary), follow these essential operational steps:
+
+### 1. Launch & SteamVR Streaming Check
+* **Ensure SteamVR is Active**: After double-clicking the project's `.exe` file, **ensure that SteamVR is running and both the headset and controllers are tracked properly** (icons on the SteamVR desktop widget should show solid green).
+* If SteamVR is not running yet, it is recommended to launch SteamVR first, wear your headset to enter the VR home space, and then launch the application `.exe`.
+
+### 2. Windows Microphone Configuration (Crucial)
+> [!IMPORTANT]
+> The on-device Whisper speech recognition system relies on the Windows default microphone input. When using SteamVR streaming, Windows may inadvertently keep your PC's onboard/desktop microphone selected rather than your headset microphone.
+* Right-click the Speaker icon on your Windows taskbar and choose **Sound Settings** (or open `Settings -> System -> Sound`);
+* Under **Input**, locate "Choose a device for speaking or recording" and **manually select the Steam Microphone** (typically named `Steam Streaming Microphone` or `SteamVR Microphone`);
+* Speak into your VR headset microphone to verify that the input volume bar responds dynamically.
+
+### 3. Ending Session & Safe Data Flushing
+> [!WARNING]
+> Report generation (CSV) and WAV audio export are triggered during the application's shutdown lifecycle. **You must properly terminate the executable when the evaluation ends**; otherwise, review data from the current session will not be saved to disk!
+
+You can terminate the application safely using either method:
+* **Option 1 (Recommended)**: Press the **`Escape (Esc)`** key on your PC keyboard. This invokes `SafeQuitManager`, which flushes all file streams to disk and shuts down the application gracefully.
+* **Option 2**: Click the window close button **`[X]`** in the top-right corner of the Windows window (or press `Alt + F4`). The embedded interceptor will catch the quit event and immediately flush pending data to disk.
+* Exported CSV reports and corresponding WAV recordings will be automatically saved under the `AnnotationData/` directory adjacent to the `.exe` file.
+
+---
+
 ## 🎮 VR Controller Mapping
 
 | Controller | Action / Input | Function |
