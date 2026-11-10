@@ -14,6 +14,10 @@ public class SteamVRUIButtonLaser : MonoBehaviour
     public SteamVR_Action_Boolean triggerAction;
     public Transform rayOrigin;
 
+    [Header("教程射线角度")]
+    [Tooltip("教程射线绕自身 X 轴的偏角，单位为度。")]
+    [SerializeField] private float tutorialRayPitchDegrees = 0f;
+
     [Header("滑动距离：页面宽度的比例")]
     [Range(0.01f, 0.5f)]
     public float swipeThreshold = 0.08f;
@@ -38,6 +42,9 @@ public class SteamVRUIButtonLaser : MonoBehaviour
 
         if (rayOrigin == null)
             rayOrigin = transform;
+
+        transform.localRotation *=
+            Quaternion.AngleAxis(tutorialRayPitchDegrees, Vector3.right);
     }
 
     private void OnEnable()
