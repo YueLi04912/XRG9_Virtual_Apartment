@@ -244,12 +244,12 @@ git lfs pull
 
 | 控制器 (Controller) | 按键 / 动作 (Input Action) | 功能描述 (Function) |
 | :--- | :--- | :--- |
-| **右手 (Right Hand)** | **摇杆 (Joystick)** | 平滑移动 (Smooth Locomotion) 或 瞬移 (Teleport) |
+| **右手 (Right Hand)** | **摇杆 (Joystick)** |  瞬移 (Teleport) |
 | **右手 (Right Hand)** | **扳机键 (Trigger)** | 激活激光；指向物体表面松开以生成批注标记小球 |
 | **右手 (Right Hand)** | **握持键 (Grip)** | 循环切换批注优先级颜色（绿：Low → 黄：Medium → 红：High） |
 | **右手 (Right Hand)** | **指向标记球 + 长按录音** | 触发多麦克风拾音，松开后自动进行 Whisper 语音转录 |
 | **右手 (Right Hand)** | **指向标记球 + 长按抓取** | 持续对准标记球 1.5 秒可删除该标记及对应的本地音频 |
-| **左手 (Left Hand)** | **摇杆 (Joystick)** | 视口平滑/定角转向 (Snap / Smooth Turn) |
+| **左手 (Left Hand)** | **摇杆 (Joystick)** | 定角转向 (Snap Turn) |
 | **左手 (Left Hand)** | **X / Primary 键** | 呼出 / 收起便携式任务说明看板 (Instruction Clipboard) |
 | **PC 键盘 (Keyboard)** | **Esc 键** | 引导员快捷键：触发数据导出并安全退出程序 |
 
