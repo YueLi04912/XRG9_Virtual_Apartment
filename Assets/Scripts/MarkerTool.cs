@@ -28,7 +28,22 @@ public class MarkerTool : MonoBehaviour
 
     [Header("语音识别")]
     public WhisperManager whisperManager;
+    [Header("激光发射点设置")]
+    [Tooltip("独立的激光发射点物体（可在手部下建子物体手动调位置和旋转；留空则默认使用当前脚本所在物体的位置）")]
+    public Transform rayOrigin;
+    [Tooltip("激光绕局部 X 轴的俯仰偏转角（度）。如果直接旋转 RayOrigin 物体来控制角度，可设为 0")]
+    public float pitchOffsetAngle = 40f;
+    [Tooltip("激光最大射程（米）")]
+    public float maxRayDistance = 10f;
+
     private Quaternion smoothedRotation;
+
+    private Transform Origin => rayOrigin != null ? rayOrigin : transform;
+
+    private Vector3 GetPointerDirection(Quaternion baseRotation)
+    {
+        return Quaternion.AngleAxis(pitchOffsetAngle, baseRotation * Vector3.right) * (baseRotation * Vector3.forward);
+    }
 
     private LineRenderer laser;
     private Color[] colors = { Color.green, Color.yellow, Color.red };
@@ -59,7 +74,7 @@ public class MarkerTool : MonoBehaviour
         laser.enabled = false;
         if(wristUI != null) wristUI.SetActive(false);
         
-        smoothedRotation = transform.rotation;
+        smoothedRotation = Origin.rotation;
         UpdateLaserColor();
         InitOmniMicrophones(); 
     }
@@ -120,8 +135,9 @@ public class MarkerTool : MonoBehaviour
             UpdateUI(); 
         }
 
-        smoothedRotation = Quaternion.Slerp(smoothedRotation, transform.rotation, Time.deltaTime * smoothSpeed);
-        Vector3 pointerDir = Quaternion.AngleAxis(40f, smoothedRotation * Vector3.right) * (smoothedRotation * Vector3.forward);
+        Vector3 originPos = Origin.position;
+        smoothedRotation = Quaternion.Slerp(smoothedRotation, Origin.rotation, Time.deltaTime * smoothSpeed);
+        Vector3 pointerDir = GetPointerDirection(smoothedRotation);
         RaycastHit hit;
 
         // ==========================================
@@ -130,7 +146,7 @@ public class MarkerTool : MonoBehaviour
         if (activeRecordingMarker != null)
         {
             activeRecordingMarker.OnHoverEnter(); 
-            laser.SetPosition(0, transform.position);
+            laser.SetPosition(0, originPos);
             laser.SetPosition(1, activeRecordingMarker.transform.position); 
 
             if (interactAction.GetStateUp(handType))
@@ -161,7 +177,7 @@ public class MarkerTool : MonoBehaviour
         if (activeDeleteMarker != null)
         {
             activeDeleteMarker.OnHoverEnter(); 
-            laser.SetPosition(0, transform.position);
+            laser.SetPosition(0, originPos);
             laser.SetPosition(1, activeDeleteMarker.transform.position); 
 
             deleteTimer += Time.deltaTime;
@@ -194,9 +210,9 @@ public class MarkerTool : MonoBehaviour
         // ==========================================
         // 3. 正常射线检测
         // ==========================================
-        if (Physics.Raycast(transform.position, pointerDir, out hit, 10f))
+        if (Physics.Raycast(originPos, pointerDir, out hit, maxRayDistance))
         {
-            laser.SetPosition(0, transform.position);
+            laser.SetPosition(0, originPos);
             laser.SetPosition(1, hit.point);
 
             FeedbackMarker hitMarker = hit.collider.GetComponent<FeedbackMarker>();
@@ -228,8 +244,8 @@ public class MarkerTool : MonoBehaviour
         }
         else
         {
-            laser.SetPosition(0, transform.position);
-            laser.SetPosition(1, transform.position + pointerDir * 10f);
+            laser.SetPosition(0, originPos);
+            laser.SetPosition(1, originPos + pointerDir * maxRayDistance);
         }
     }
 
@@ -354,5 +370,13 @@ public class MarkerTool : MonoBehaviour
             }
         }
         catch (System.Exception e) { Debug.LogError($"[STT] 识别失败: {e.Message}"); }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Transform origin = Origin;
+        Gizmos.color = colors != null && colors.Length > 0 ? colors[currentIndex] : Color.green;
+        Gizmos.DrawSphere(origin.position, 0.01f);
+        Gizmos.DrawRay(origin.position, GetPointerDirection(origin.rotation) * 2f);
     }
 }

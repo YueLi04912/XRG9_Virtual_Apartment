@@ -206,7 +206,7 @@ MonoBehaviour:
   snapAttachEaseInTime: 0.1
   snapAttachEaseInCompleted: 1
   skeletonPoser: {fileID: 0}
-  handFollowTransform: 1
+  handFollowTransform: 0
   highlightOnHover: 0
   hideHighlight: []
   hoverPriority: 0
