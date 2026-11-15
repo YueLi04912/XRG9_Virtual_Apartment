@@ -18,7 +18,11 @@ public class ClipboardSync : MonoBehaviour
     public Transform playerHead;       
     public float spawnDistance = 0.5f; 
     public float heightOffset = -0.2f; 
-
+    
+    [Header("音效设置 (新增)")]
+    public AudioSource audioSource;       // 刚才添加的发声组件
+    public AudioClip openSound;           // 开启时的音效 (例如：唰~)
+    public AudioClip closeSound;          // 关闭时的音效 (例如：滴.)
     private bool isShowing = false;
 
     void Start()
@@ -68,6 +72,19 @@ public class ClipboardSync : MonoBehaviour
         {
             summonVFX.Stop(); 
             summonVFX.Play(); 
+        }
+        
+        // --- 音效触发逻辑 ---
+        if (audioSource != null)
+        {
+            if (isShowing && openSound != null)
+            {
+                audioSource.PlayOneShot(openSound); // 播放开启音效
+            }
+            else if (!isShowing && closeSound != null)
+            {
+                audioSource.PlayOneShot(closeSound); // 播放关闭音效
+            }
         }
     }
 }
