@@ -264,6 +264,51 @@ PrefabInstance:
       propertyPath: rayOrigin
       value: 
       objectReference: {fileID: 1722037830}
+    - target: {fileID: 1933959978098262605, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
+        type: 3}
+      propertyPath: sfxSource
+      value: 
+      objectReference: {fileID: 198332308}
+    - target: {fileID: 1933959978098262605, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
+        type: 3}
+      propertyPath: modeOnClip
+      value: 
+      objectReference: {fileID: 8300000, guid: d9e11f65d81684642a34ab8d2c908d05, type: 3}
+    - target: {fileID: 1933959978098262605, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
+        type: 3}
+      propertyPath: modeOffClip
+      value: 
+      objectReference: {fileID: 8300000, guid: d9e11f65d81684642a34ab8d2c908d05, type: 3}
+    - target: {fileID: 1933959978098262605, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
+        type: 3}
+      propertyPath: deleteDoneClip
+      value: 
+      objectReference: {fileID: 8300000, guid: d9e11f65d81684642a34ab8d2c908d05, type: 3}
+    - target: {fileID: 1933959978098262605, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
+        type: 3}
+      propertyPath: recordStopClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 9cb33f699a4c6fc4785231cea5b4e0c7, type: 3}
+    - target: {fileID: 1933959978098262605, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
+        type: 3}
+      propertyPath: recordStartClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 7703474f938c0f745b89bab8c9654758, type: 3}
+    - target: {fileID: 1933959978098262605, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
+        type: 3}
+      propertyPath: spawnMarkerClip
+      value: 
+      objectReference: {fileID: 8300000, guid: de1f9b967d320a5498b6c10f14eeda74, type: 3}
+    - target: {fileID: 1933959978098262605, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
+        type: 3}
+      propertyPath: switchColorClip
+      value: 
+      objectReference: {fileID: 8300000, guid: d4c617d5c4573f44b8c5720ad2b1a08d, type: 3}
+    - target: {fileID: 1933959978098262605, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
+        type: 3}
+      propertyPath: deletingLoopClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 77c108cf1619ca84f8e13887c2f143c7, type: 3}
     - target: {fileID: 2160853619714121065, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
         type: 3}
       propertyPath: m_LocalPosition.y
@@ -425,11 +470,21 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 994732490}
+    - targetCorrespondingSourceObject: {fileID: 4237990754592278462, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 198332308}
     - targetCorrespondingSourceObject: {fileID: 1308854142117939301, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 66377239}
   m_SourcePrefab: {fileID: 100100000, guid: aca80f5714b103b4e9d0a0d5a8c7380b, type: 3}
+--- !u!1 &66377237 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4237990754592278462, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
+    type: 3}
+  m_PrefabInstance: {fileID: 66377236}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &66377238 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1308854142117939301, guid: aca80f5714b103b4e9d0a0d5a8c7380b,
@@ -784,6 +839,102 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 66377236}
   m_PrefabAsset: {fileID: 0}
+--- !u!82 &198332308
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 66377237}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &211791168
 PrefabInstance:
   m_ObjectHideFlags: 0

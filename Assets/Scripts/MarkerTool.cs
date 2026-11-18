@@ -26,8 +26,20 @@ public class MarkerTool : MonoBehaviour
     [Header("防抖设置")]
     public float smoothSpeed = 15f; 
 
+    [Header("交互音效")]
+    public AudioSource sfxSource;
+    public AudioClip switchColorClip;  // 切换颜色/优先级音效
+    public AudioClip modeOnClip;       // 进入标记模式音效
+    public AudioClip modeOffClip;      // 退出标记模式音效
+    public AudioClip spawnMarkerClip;  // 放置标记球音效
+    public AudioClip deletingLoopClip; // 长按删除进度条音效（自带渐进升调）
+    public AudioClip deleteDoneClip;   // 满1.5秒删除成功音效
+    public AudioClip recordStartClip;  // 按下扳机开始录音提示音
+    public AudioClip recordStopClip;   // 松开扳机结束录音提示音
+
     [Header("语音识别")]
     public WhisperManager whisperManager;
+
     [Header("激光发射点设置")]
     [Tooltip("独立的激光发射点物体（可在手部下建子物体手动调位置和旋转；留空则默认使用当前脚本所在物体的位置）")]
     public Transform rayOrigin;
@@ -55,9 +67,11 @@ public class MarkerTool : MonoBehaviour
     private FeedbackMarker activeRecordingMarker = null; 
     private FeedbackMarker activeDeleteMarker = null; 
     private float deleteTimer = 0f;
-    private const float DELETE_THRESHOLD = 1.5f; 
+    private bool hasStartedDeleteSfx = false;
+    private const float TAP_THRESHOLD = 0.25f;    // 短按判定上限（秒）
+    private const float DELETE_THRESHOLD = 1.5f;  // 长按删除总时长（秒）
 
-    // === 终极方案：多路并发监听系统 ===
+    // === 多路并发监听系统 ===
     private class MicTracker
     {
         public string deviceName;
@@ -94,18 +108,14 @@ public class MarkerTool : MonoBehaviour
                 targetMics.Add(dev);
             }
         }
-        // 如果都没匹配到，加入系统默认麦克风兜底
         if (targetMics.Count == 0) targetMics.Add(Microphone.devices[0]); 
 
         foreach (var micName in targetMics)
         {
             try 
             {
-                // 获取麦克风原生支持的采样率，防止 Oculus 驱动因为频率不匹配而输出纯 0.0f 的静音数据
                 int minFreq, maxFreq;
                 Microphone.GetDeviceCaps(micName, out minFreq, out maxFreq);
-                
-                // 如果 maxFreq 返回 0，说明驱动允许任意频率，我们优先给 Oculus 分配它的原生 48000Hz
                 int recordFreq = (maxFreq == 0) ? 48000 : maxFreq; 
 
                 AudioClip c = Microphone.Start(micName, true, 600, recordFreq);
@@ -118,21 +128,42 @@ public class MarkerTool : MonoBehaviour
 
     void Update()
     {
+        // ==========================================
+        // 0. 切换标记模式 (A键)
+        // ==========================================
         if (toggleModeAction != null && toggleModeAction.GetStateDown(handType))
         {
             isAnnotationMode = !isAnnotationMode;
             laser.enabled = isAnnotationMode;
             if(wristUI != null) wristUI.SetActive(isAnnotationMode);
             if (isAnnotationMode) UpdateUI();
+
+            if (sfxSource != null)
+            {
+                sfxSource.pitch = 1.0f;
+                if (isAnnotationMode && modeOnClip != null)
+                    sfxSource.PlayOneShot(modeOnClip);
+                else if (!isAnnotationMode && modeOffClip != null)
+                    sfxSource.PlayOneShot(modeOffClip);
+            }
         }
 
         if (!isAnnotationMode) return; 
 
+        // ==========================================
+        // 0.5 切换优先级颜色 (Grip键)
+        // ==========================================
         if (switchColorAction.GetStateDown(handType) && activeRecordingMarker == null && activeDeleteMarker == null)
         {
             currentIndex = (currentIndex + 1) % colors.Length;
             UpdateLaserColor();
             UpdateUI(); 
+
+            if (sfxSource != null && switchColorClip != null)
+            {
+                sfxSource.pitch = 1.0f + currentIndex * 0.25f;
+                sfxSource.PlayOneShot(switchColorClip);
+            }
         }
 
         Vector3 originPos = Origin.position;
@@ -151,8 +182,13 @@ public class MarkerTool : MonoBehaviour
 
             if (interactAction.GetStateUp(handType))
             {
-                // 松开扳机时，调用波形仲裁提取最佳音频
                 AudioClip extractedClip = StopAndExtractBestAudio();
+
+                if (sfxSource != null && recordStopClip != null)
+                {
+                    sfxSource.pitch = 1.0f;
+                    sfxSource.PlayOneShot(recordStopClip);
+                }
                 
                 if (extractedClip != null && extractedClip.samples > 0)
                 {
@@ -172,7 +208,7 @@ public class MarkerTool : MonoBehaviour
         }
 
         // ==========================================
-        // 2. 播放与删除锁定逻辑 (B键长按)
+        // 2. 播放与删除锁定逻辑 (B键短按播放 / 长按删除)
         // ==========================================
         if (activeDeleteMarker != null)
         {
@@ -181,17 +217,45 @@ public class MarkerTool : MonoBehaviour
             laser.SetPosition(1, activeDeleteMarker.transform.position); 
 
             deleteTimer += Time.deltaTime;
-            float progress = Mathf.Clamp01(deleteTimer / DELETE_THRESHOLD);
 
-            if (statusText != null)
+            // 超过短按阈值 (0.25s) 后，确认为长按删除状态，开始走进度条与渐进音效
+            if (deleteTimer >= TAP_THRESHOLD)
             {
-                int filledBlocks = Mathf.FloorToInt(progress * 10);
-                string bar = new string('█', filledBlocks) + new string('░', 10 - filledBlocks);
-                statusText.text = $"<color=#ffaa00>Deleting ID: #{activeDeleteMarker.markerId}\n{bar}</color>";
+                if (!hasStartedDeleteSfx && sfxSource != null && deletingLoopClip != null)
+                {
+                    hasStartedDeleteSfx = true;
+                    sfxSource.Stop();
+                    sfxSource.pitch = 1.0f;
+                    sfxSource.loop = false;
+                    sfxSource.clip = deletingLoopClip;
+                    sfxSource.Play();
+                }
+
+                float progress = Mathf.Clamp01((deleteTimer - TAP_THRESHOLD) / (DELETE_THRESHOLD - TAP_THRESHOLD));
+
+                if (statusText != null)
+                {
+                    int filledBlocks = Mathf.FloorToInt(progress * 10);
+                    string bar = new string('█', filledBlocks) + new string('░', 10 - filledBlocks);
+                    statusText.text = $"<color=#ffaa00>Deleting ID: #{activeDeleteMarker.markerId}\n{bar}</color>";
+                }
             }
 
+            // 满 1.5 秒：完成删除
             if (deleteTimer >= DELETE_THRESHOLD)
             {
+                if (sfxSource != null)
+                {
+                    if (sfxSource.clip == deletingLoopClip)
+                    {
+                        sfxSource.Stop();
+                        sfxSource.clip = null;
+                    }
+                    sfxSource.pitch = 1.0f;
+                    if (deleteDoneClip != null)
+                        sfxSource.PlayOneShot(deleteDoneClip);
+                }
+
                 AnnotationExporter.DeleteAudioFiles(activeDeleteMarker.audioFiles);
                 Destroy(activeDeleteMarker.gameObject);
                 activeDeleteMarker = null;
@@ -199,8 +263,21 @@ public class MarkerTool : MonoBehaviour
                 return;
             }
 
+            // 松开 B 键：区分短按与中途取消删除
             if (secondaryAction != null && secondaryAction.GetStateUp(handType))
             {
+                if (sfxSource != null && sfxSource.clip == deletingLoopClip)
+                {
+                    sfxSource.Stop();
+                    sfxSource.clip = null;
+                }
+
+                // 按住时长小于 0.25 秒 -> 判定为短按，播放录音
+                if (deleteTimer < TAP_THRESHOLD)
+                {
+                    activeDeleteMarker.PlayAudio();
+                }
+
                 activeDeleteMarker = null; 
                 UpdateUI(); 
             }
@@ -223,18 +300,24 @@ public class MarkerTool : MonoBehaviour
                 if (interactAction.GetStateDown(handType))
                 {
                     activeRecordingMarker = hitMarker;
-                    // 按下扳机时，让所有麦克风通道同时打点标记起始位置
                     foreach (var mic in activeMics)
                     {
                         mic.startPos = Microphone.GetPosition(mic.deviceName);
                     }
                     if (statusText != null) statusText.text = $"<color=red>● Recording (ID: #{activeRecordingMarker.markerId})...</color>";
+
+                    if (sfxSource != null && recordStartClip != null)
+                    {
+                        sfxSource.pitch = 1.0f;
+                        sfxSource.PlayOneShot(recordStartClip);
+                    }
                 }
                 else if (secondaryAction != null && secondaryAction.GetStateDown(handType))
                 {
+                    // 仅锁定目标并归零计时器，等待松开或长按阈值判定
                     activeDeleteMarker = hitMarker;
                     deleteTimer = 0f;
-                    hitMarker.PlayAudio(); 
+                    hasStartedDeleteSfx = false;
                 }
             }
             else
@@ -281,7 +364,6 @@ public class MarkerTool : MonoBehaviour
                 headData.CopyTo(samples, tailLength);
             }
 
-            // 寻找当前通道的波形峰值
             float currentMaxAmp = 0f;
             for (int i = 0; i < samples.Length; i++)
             {
@@ -289,7 +371,6 @@ public class MarkerTool : MonoBehaviour
                     currentMaxAmp = Mathf.Abs(samples[i]);
             }
 
-            // 如果这个通道捕捉到了更大的声音（排除空载的纯0.0f）
             if (currentMaxAmp > highestAmplitude)
             {
                 highestAmplitude = currentMaxAmp;
@@ -298,12 +379,10 @@ public class MarkerTool : MonoBehaviour
             }
         }
 
-        // 阈值保护：如果所有麦克风录到的最大峰值都小于 0.005f，说明全是在录空气/底噪
         if (bestSamples != null && highestAmplitude > 0.005f)
         {
             Debug.Log($"<color=green>[波形仲裁] 胜出通道: {winningMicName} | 声音峰值: {highestAmplitude}</color>");
             
-            // 对最终胜出的真实录音，执行自适应音量拉满补偿 (Auto-Gain)
             float targetVolume = 0.95f; 
             float dynamicBoost = targetVolume / highestAmplitude; 
             for (int i = 0; i < bestSamples.Length; i++) 
@@ -329,6 +408,12 @@ public class MarkerTool : MonoBehaviour
         globalMarkerCounter++;
         FeedbackMarker markerScript = newMarker.GetComponent<FeedbackMarker>();
         markerScript.InitData(globalMarkerCounter, colors[currentIndex], priorities[currentIndex]);
+
+        if (sfxSource != null && spawnMarkerClip != null)
+        {
+            sfxSource.pitch = 1.0f;
+            sfxSource.PlayOneShot(spawnMarkerClip);
+        }
     }
 
     private void UpdateLaserColor()

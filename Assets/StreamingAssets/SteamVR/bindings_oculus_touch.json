@@ -306,6 +306,16 @@
               "output": "/actions/default/in/playordelete"
             }
           }
+        },
+        {
+          "path": "/user/hand/left/input/x",
+          "mode": "button",
+          "parameters": {},
+          "inputs": {
+            "click": {
+              "output": "/actions/default/in/toggleclipboard"
+            }
+          }
         }
       ],
       "skeleton": [
@@ -356,5 +366,5 @@
   },
   "controller_type": "oculus_touch",
   "description": "",
-  "name": "为 Oculus Touch 控制器 保存的 XR_Virtual_Apartment [Testing] 配置"
+  "name": "vandark 共享的绑定"
 }
