@@ -125,7 +125,7 @@ XRG9_Virtual_Apartment/
 │   │   ├── MainVirtualApartment.unity       # Fallback scene
 │   │   ├── Dev_Marker.unity                 # Standalone annotation test scene
 │   │   ├── Dev_InteractableFoods.unity      # Standalone food interaction scene
-│   │   ├── Dev_ObjectScale.unity            # Object scaling test scene
+│   │   ├── Dev_ObjectScale.unity            # Standalone object scaling test scene
 │   │   ├── MENG_InstructionBoard.unity      # Instruction board test scene
 │   │   └── RealMainVirtualApartment/        # Baked lightmaps & reflection probes
 │   ├── Scripts/                   # Core application logic
@@ -190,9 +190,10 @@ git lfs pull
 
 ## 🖥️ How to Run the Built Executable
 
-If you are running the pre-built standalone package (`.exe` binary), follow these essential operational steps:
+If you are running the pre-built standalone package (`.exe` binary), follow these essential operational steps. **For wireless streaming, using Quest 3 with the Steam Link app is recommended.**
 
 ### 1. Launch & SteamVR Streaming Check
+* **Before Launch**: Make sure the Steam Link app is open on your Quest 3 and connected to the PC running the project.
 * **Ensure SteamVR is Active**: After double-clicking the project's `.exe` file, **ensure that SteamVR is running and both the headset and controllers are tracked properly** (icons on the SteamVR desktop widget should show solid green).
 * If SteamVR is not running yet, it is recommended to launch SteamVR first, wear your headset to enter the VR home space, and then launch the application `.exe`.
 
